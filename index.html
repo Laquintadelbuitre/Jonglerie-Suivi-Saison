@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Suivi Jonglerie — U13 Limoges Football</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pitch:#12301F;
+  --pitch-2:#0B2116;
+  --turf:#F6F3E9;
+  --card:#FFFFFF;
+  --gold:#F0B429;
+  --grass:#2E9E5B;
+  --grass-dark:#1F7A44;
+  --alert:#D6483E;
+  --alert-dark:#B33A32;
+  --ink:#16241C;
+  --muted:#6B7A70;
+  --line:#E3DFD1;
+  --radius:18px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--turf);
+  color:var(--ink);
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+h1,h2,h3,.display{
+  font-family:'Oswald',sans-serif;
+  text-transform:uppercase;
+  letter-spacing:0.02em;
+}
+#app{max-width:640px;margin:0 auto;min-height:100vh;background:var(--turf);position:relative;}
+
+/* ---------- HERO ---------- */
+.hero{
+  background:linear-gradient(160deg,var(--pitch) 0%,var(--pitch-2) 100%);
+  color:#fff;
+  padding:28px 20px 34px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 40px, transparent 40px 80px);
+  pointer-events:none;
+}
+.hero-top{display:flex; align-items:center; gap:14px; position:relative; z-index:1;}
+.ball{
+  width:46px; height:46px; flex:none;
+  filter:drop-shadow(0 6px 8px rgba(0,0,0,0.35));
+  animation:bounce 2.2s ease-in-out infinite;
+}
+@keyframes bounce{
+  0%,100%{transform:translateY(0) scaleX(1);}
+  38%{transform:translateY(-14px) scaleX(0.97);}
+  50%{transform:translateY(-16px) scaleX(0.94);}
+  62%{transform:translateY(-14px) scaleX(0.97);}
+  82%{transform:translateY(0) scaleX(1.08);}
+  88%{transform:translateY(0) scaleX(1.1);}
+}
+.hero-title{font-size:22px; font-weight:700; line-height:1.05; margin:0;}
+.hero-sub{font-size:12.5px; color:#B9C9BE; font-family:'Inter',sans-serif; text-transform:none; letter-spacing:0; margin-top:3px;}
+.hero-week{
+  margin-top:18px; position:relative; z-index:1;
+  font-family:'Inter',sans-serif; font-size:13px; color:#E7EEE9;
+  background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14);
+  border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between;
+}
+.hero-week b{font-family:'Oswald',sans-serif; font-weight:600; letter-spacing:0.03em; color:var(--gold);}
+
+/* ---------- SECTIONS / GENERIC ---------- */
+.section{padding:22px 20px 10px;}
+.section-label{font-size:12px; color:var(--muted); font-weight:600; letter-spacing:0.08em; margin:0 0 12px;}
+.back{
+  display:inline-flex; align-items:center; gap:6px;
+  background:none; border:none; color:#CFE0D5; font-family:'Inter',sans-serif;
+  font-size:13px; font-weight:600; cursor:pointer; padding:0; margin-bottom:14px;
+}
+.back svg{width:14px;height:14px;}
+
+/* player grid */
+.grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+}
+.player-tile{
+  background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:12px 6px 10px; text-align:center; cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease; user-select:none;
+}
+.player-tile:active{transform:scale(0.96);}
+.avatar{
+  width:38px; height:38px; margin:0 auto 8px; border-radius:50%;
+  background:var(--pitch); color:var(--gold); font-family:'Oswald',sans-serif; font-weight:600;
+  display:flex; align-items:center; justify-content:center; font-size:14px;
+}
+.player-tile .pname{font-size:11.5px; font-weight:600; line-height:1.2;}
+
+.coach-btn-wrap{padding:6px 20px 26px;}
+.coach-btn{
+  width:100%; background:var(--pitch); color:#fff; border:none; border-radius:14px;
+  padding:14px; font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:0.04em;
+  text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.coach-btn svg{width:16px;height:16px;}
+
+/* ---------- PIN MODAL ---------- */
+.overlay{
+  position:fixed; inset:0; background:rgba(11,33,22,0.55); backdrop-filter:blur(2px);
+  display:flex; align-items:flex-end; justify-content:center; z-index:50;
+  animation:fadein .15s ease;
+}
+@keyframes fadein{from{opacity:0;}to{opacity:1;}}
+.pin-sheet{
+  width:100%; max-width:640px; background:var(--card); border-radius:22px 22px 0 0;
+  padding:22px 24px 30px; animation:slideup .18s ease;
+}
+@keyframes slideup{from{transform:translateY(24px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+.pin-title{text-align:center; font-size:16px; margin:0 0 4px;}
+.pin-sub{text-align:center; font-size:12.5px; color:var(--muted); margin:0 0 18px;}
+.pin-dots{display:flex; justify-content:center; gap:14px; margin-bottom:20px;}
+.pin-dot{width:14px; height:14px; border-radius:50%; border:2px solid var(--pitch); background:transparent;}
+.pin-dot.filled{background:var(--pitch);}
+.pin-dot.err{border-color:var(--alert); background:var(--alert);}
+.keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-width:280px; margin:0 auto;}
+.key{
+  background:var(--turf); border:1px solid var(--line); border-radius:12px; padding:16px 0;
+  font-family:'Oswald',sans-serif; font-size:18px; cursor:pointer; text-align:center;
+}
+.key:active{background:var(--line);}
+.key.action{background:none; border:none; display:flex; align-items:center; justify-content:center; color:var(--muted);}
+.pin-error{text-align:center; color:var(--alert); font-size:12.5px; height:16px; margin-top:12px; font-weight:600;}
+.pin-cancel{display:block; margin:14px auto 0; background:none; border:none; color:var(--muted); font-size:12.5px; text-decoration:underline; cursor:pointer;}
+
+/* ---------- PLAYER SCREEN ---------- */
+.status-row{display:flex; align-items:center; gap:10px; margin-bottom:18px;}
+.mini-ball{width:26px; height:26px;}
+.mini-ball.off{opacity:0.28;}
+.status-text{font-size:12.5px; color:var(--muted);}
+.status-text b{color:var(--ink);}
+
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px 18px; margin-bottom:14px;
+}
+.card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.card-head .tag{
+  font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;
+  background:var(--pitch); color:var(--gold); padding:3px 9px; border-radius:20px;
+}
+.card-date{font-size:11.5px; color:var(--muted);}
+.score-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px 16px;}
+.score-item{display:flex; justify-content:space-between; font-size:13.5px; border-bottom:1px dashed var(--line); padding-bottom:6px;}
+.score-item span:last-child{font-weight:700; font-family:'Oswald',sans-serif;}
+
+.form-row{margin-bottom:13px;}
+.form-row label{display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:5px;}
+.form-row input{
+  width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid var(--line);
+  font-size:16px; font-family:'Inter',sans-serif; background:var(--turf);
+}
+.form-row input:focus{outline:none; border-color:var(--pitch);}
+.save-btn{
+  width:100%; background:var(--grass); color:#fff; border:none; border-radius:12px;
+  padding:14px; font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:0.04em;
+  text-transform:uppercase; cursor:pointer; margin-top:4px;
+}
+.save-btn:disabled{opacity:0.5;}
+.save-btn:active{background:var(--grass-dark);}
+.locked-box{
+  text-align:center; padding:22px 16px; background:var(--card); border:1px dashed var(--line);
+  border-radius:var(--radius); color:var(--muted); font-size:13.5px;
+}
+.loading-box{text-align:center; padding:22px 16px; color:var(--muted); font-size:13px;}
+.error-box{
+  text-align:center; padding:14px 16px; background:#FBEAE8; border:1px solid var(--alert);
+  border-radius:12px; color:var(--alert-dark); font-size:12.5px; margin-bottom:14px;
+}
+
+/* ---------- COACH DASHBOARD ---------- */
+.stat-bar{
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:14px 18px; margin-bottom:16px;
+}
+.stat-bar .num{font-family:'Oswald',sans-serif; font-size:24px; color:var(--grass-dark);}
+.coach-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;}
+.coach-tile{
+  border-radius:14px; padding:13px 14px; cursor:pointer; color:#fff; position:relative; overflow:hidden;
+}
+.coach-tile.green{background:linear-gradient(135deg,var(--grass),var(--grass-dark));}
+.coach-tile.red{background:linear-gradient(135deg,var(--alert),var(--alert-dark));}
+.coach-tile .cname{font-family:'Oswald',sans-serif; font-size:14px; font-weight:600;}
+.coach-tile .csub{font-size:11px; opacity:0.9; margin-top:3px;}
+.coach-tile .cicon{position:absolute; right:8px; top:8px; width:16px; height:16px; opacity:0.85;}
+
+.export-btn{
+  width:100%; background:var(--pitch); color:#fff; border:none; border-radius:12px;
+  padding:14px; font-family:'Oswald',sans-serif; font-size:13.5px; letter-spacing:0.04em;
+  text-transform:uppercase; cursor:pointer; margin-bottom:12px;
+}
+.sheet-link{
+  display:block; text-align:center; font-size:12px; color:var(--muted); margin-bottom:28px;
+}
+
+/* detail modal */
+.detail-sheet{max-height:80vh; overflow-y:auto;}
+.detail-title{font-size:17px; margin:0 0 2px;}
+.detail-week{font-size:12px; color:var(--muted); margin-bottom:16px;}
+.empty-note{color:var(--muted); font-size:13px; text-align:center; padding:14px 0;}
+
+.hidden{display:none !important;}
+footer.note{padding:0 20px 26px; font-size:11px; color:var(--muted); text-align:center; line-height:1.5;}
+
+/* setup screen */
+.setup-box{margin:20px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; font-size:13.5px; line-height:1.6;}
+.setup-box code{background:var(--turf); padding:2px 6px; border-radius:6px; font-size:12px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ SETUP NOTICE (shown if SCRIPT_URL not configured) ============ -->
+  <div id="screen-setup" class="hidden">
+    <div class="hero">
+      <div class="hero-top">
+        <svg class="ball" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#F6F3E9" stroke="#12301F" stroke-width="4"/><path d="M50 10 L64 22 L59 40 L41 40 L36 22 Z" fill="#12301F"/><path d="M50 90 L36 78 L41 60 L59 60 L64 78 Z" fill="#12301F"/><path d="M10 50 L22 36 L40 41 L40 59 L22 64 Z" fill="#12301F"/><path d="M90 50 L78 64 L60 59 L60 41 L78 36 Z" fill="#12301F"/></svg>
+        <div>
+          <h1 class="hero-title">Suivi Jonglerie</h1>
+          <div class="hero-sub">Configuration requise</div>
+        </div>
+      </div>
+    </div>
+    <div class="setup-box">
+      L'adresse du Google Sheet n'est pas encore configurée.<br><br>
+      Ouvre le fichier <code>index.html</code>, cherche la ligne <code>const SCRIPT_URL = "..."</code> tout en haut du script, et colle l'URL obtenue après avoir déployé l'Apps Script (étape "Application Web" dans Google Sheet &gt; Extensions &gt; Apps Script &gt; Déployer).
+    </div>
+  </div>
+
+  <!-- ============ HOME ============ -->
+  <div id="screen-home" class="hidden">
+    <div class="hero">
+      <div class="hero-top">
+        <svg class="ball" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#F6F3E9" stroke="#12301F" stroke-width="4"/><path d="M50 10 L64 22 L59 40 L41 40 L36 22 Z" fill="#12301F"/><path d="M50 90 L36 78 L41 60 L59 60 L64 78 Z" fill="#12301F"/><path d="M10 50 L22 36 L40 41 L40 59 L22 64 Z" fill="#12301F"/><path d="M90 50 L78 64 L60 59 L60 41 L78 36 Z" fill="#12301F"/></svg>
+        <div>
+          <h1 class="hero-title">Suivi Jonglerie</h1>
+          <div class="hero-sub">U13 · Limoges Football</div>
+        </div>
+      </div>
+      <div class="hero-week" id="home-week-box">Semaine du <b id="home-week-range">—</b></div>
+    </div>
+
+    <div class="section">
+      <p class="section-label">Choisis ton nom</p>
+      <div class="grid" id="player-grid"></div>
+    </div>
+
+    <div class="coach-btn-wrap">
+      <button class="coach-btn" id="btn-coach-home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z"/></svg>
+        Espace éducateur
+      </button>
+    </div>
+    <footer class="note">Chaque joueur remplit sa fiche 1 à 2 fois par semaine (dimanche 23h59, fin de semaine). Les scores sont enregistrés directement dans le Google Sheet.</footer>
+  </div>
+
+  <!-- ============ PLAYER SCREEN ============ -->
+  <div id="screen-player" class="hidden">
+    <div class="hero" style="padding-bottom:22px;">
+      <button class="back" id="btn-back-player"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Accueil</button>
+      <h1 class="hero-title" id="player-name">—</h1>
+      <div class="hero-sub" id="player-week-range">—</div>
+    </div>
+    <div class="section" style="padding-top:20px;">
+      <div id="player-content"><div class="loading-box">Chargement…</div></div>
+    </div>
+  </div>
+
+  <!-- ============ COACH DASHBOARD ============ -->
+  <div id="screen-coach" class="hidden">
+    <div class="hero" style="padding-bottom:22px;">
+      <button class="back" id="btn-back-coach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Accueil</button>
+      <h1 class="hero-title">Tableau de bord</h1>
+      <div class="hero-sub" id="coach-week-range">—</div>
+    </div>
+    <div class="section" style="padding-top:20px;" id="coach-content">
+      <div class="loading-box">Chargement…</div>
+    </div>
+  </div>
+
+  <!-- ============ PIN OVERLAY ============ -->
+  <div id="pin-overlay" class="overlay hidden">
+    <div class="pin-sheet">
+      <h2 class="pin-title" id="pin-title">Code</h2>
+      <p class="pin-sub" id="pin-sub">Entre ton code à 4 chiffres</p>
+      <div class="pin-dots" id="pin-dots"></div>
+      <div class="keypad" id="keypad"></div>
+      <div class="pin-error" id="pin-error"></div>
+      <button class="pin-cancel" id="pin-cancel">Annuler</button>
+    </div>
+  </div>
+
+  <!-- ============ COACH DETAIL OVERLAY ============ -->
+  <div id="detail-overlay" class="overlay hidden">
+    <div class="pin-sheet detail-sheet">
+      <h2 class="detail-title" id="detail-title">—</h2>
+      <div class="detail-week" id="detail-week">—</div>
+      <div id="detail-content"></div>
+      <button class="pin-cancel" id="detail-close">Fermer</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =====================================================================
+   CONFIGURATION — A REMPLIR APRES DEPLOIEMENT DE L'APPS SCRIPT
+   ===================================================================== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmlyYPdY7doo-RLhSlK2grMGXM2wtIBl6fLk8OT35BrWUfItLM5jjoYA8j66P8FfiW/exec";
+/* Exemple : "https://script.google.com/macros/s/AKfycb.../exec" */
+
+/* ======================= DATA ======================= */
+const PLAYERS = [
+  {name:"Hadi", code:"1824"},
+  {name:"Sebastien", code:"0409"},
+  {name:"Mickaël", code:"4506"},
+  {name:"Bakoutoubo", code:"4012"},
+  {name:"Sacha", code:"3657"},
+  {name:"Keys", code:"2286"},
+  {name:"Nourou", code:"1679"},
+  {name:"Yanis", code:"8935"},
+  {name:"Mathis", code:"1424"},
+  {name:"Ethan", code:"9674"},
+  {name:"Abdoul Karim", code:"6912"},
+  {name:"Jalil", code:"0520"},
+  {name:"Gabin", code:"0488"},
+  {name:"Adam", code:"1535"},
+  {name:"Kalifa", code:"3582"},
+  {name:"Bilel", code:"3811"},
+  {name:"Pablo", code:"8279"},
+  {name:"Melih", code:"9863"},
+  {name:"Issam", code:"0434"},
+  {name:"Emir", code:"9195"},
+  {name:"Loan", code:"3257"},
+  {name:"Sarah", code:"8928"}
+];
+const COACH_CODE = "501";
+const DISCIPLINES = [
+  {key:"droit", label:"Pied droit"},
+  {key:"gauche", label:"Pied gauche"},
+  {key:"alternes", label:"Pieds alternés"},
+  {key:"tete", label:"Tête"}
+];
+
+/* ======================= WEEK LOGIC ======================= */
+function getWeekInfo(d = new Date()){
+  const date = new Date(d);
+  date.setHours(0,0,0,0);
+  const day = (date.getDay() + 6) % 7; // 0 = lundi
+  const monday = new Date(date); monday.setDate(date.getDate() - day);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+  const thursday = new Date(monday); thursday.setDate(monday.getDate() + 3);
+  const year = thursday.getFullYear();
+  const firstThursday = new Date(year, 0, 1);
+  while (firstThursday.getDay() !== 4) firstThursday.setDate(firstThursday.getDate() + 1);
+  const week = 1 + Math.round((thursday - firstThursday) / (7*24*3600*1000));
+  const key = `${year}-W${String(week).padStart(2,'0')}`;
+  return {key, monday, sunday};
+}
+function fmtRange(monday, sunday){
+  const opt = {day:'numeric', month:'long'};
+  return `${monday.toLocaleDateString('fr-FR', opt)} → ${sunday.toLocaleDateString('fr-FR', opt)}`;
+}
+const WEEK = getWeekInfo();
+
+/* ======================= API HELPERS (Google Sheet via Apps Script) ======================= */
+async function apiGet(params){
+  const url = new URL(SCRIPT_URL);
+  Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+  const res = await fetch(url.toString());
+  return res.json();
+}
+async function apiPost(payload){
+  // Pas de header explicite : le body texte reste en Content-Type "text/plain",
+  // ce qui évite le préflight CORS que l'Apps Script ne sait pas gérer.
+  const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+  return res.json();
+}
+async function getSessionsForPlayer(weekKey, name){
+  try{
+    const rows = await apiGet({ action: "weekPlayer", player: name, weekKey });
+    return Array.isArray(rows) ? rows.sort((a,b)=> Number(a.Session) - Number(b.Session)) : [];
+  }catch(e){ return null; } // null = erreur réseau (distinct de [] = aucune session)
+}
+async function getSessionsForWeek(weekKey){
+  try{
+    const rows = await apiGet({ action: "week", weekKey });
+    return Array.isArray(rows) ? rows : [];
+  }catch(e){ return null; }
+}
+async function saveSession(weekKey, name, sessionNumber, sessionObj){
+  return apiPost({ action:"saveSession", player:name, weekKey, sessionNumber, session:sessionObj });
+}
+
+/* ======================= STATE ======================= */
+let currentPlayer = null;
+let pinMode = null; // 'player' | 'coach'
+let pinBuffer = "";
+
+/* ======================= INIT / ROUTING ======================= */
+if(!SCRIPT_URL || SCRIPT_URL.indexOf("COLLE_ICI") !== -1){
+  document.getElementById("screen-setup").classList.remove("hidden");
+} else {
+  document.getElementById("screen-home").classList.remove("hidden");
+  renderHome();
+}
+
+/* ======================= HOME ======================= */
+function initials(name){
+  return name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+}
+function renderHome(){
+  document.getElementById("home-week-range").textContent = fmtRange(WEEK.monday, WEEK.sunday);
+  const grid = document.getElementById("player-grid");
+  grid.innerHTML = "";
+  PLAYERS.forEach(p=>{
+    const el = document.createElement("div");
+    el.className = "player-tile";
+    el.innerHTML = `<div class="avatar">${initials(p.name)}</div><div class="pname">${p.name}</div>`;
+    el.onclick = () => openPin('player', p);
+    grid.appendChild(el);
+  });
+}
+
+/* ======================= PIN OVERLAY ======================= */
+function openPin(mode, player){
+  pinMode = mode;
+  currentPlayer = player || null;
+  pinBuffer = "";
+  document.getElementById("pin-title").textContent = mode === 'coach' ? "Code éducateur" : `Code de ${player.name}`;
+  document.getElementById("pin-sub").textContent = mode === 'coach' ? "Entre ton code éducateur" : "Entre ton code à 4 chiffres";
+  document.getElementById("pin-error").textContent = "";
+  buildKeypad();
+  renderPinDots(false);
+  document.getElementById("pin-overlay").classList.remove("hidden");
+}
+function closePin(){
+  document.getElementById("pin-overlay").classList.add("hidden");
+}
+function renderPinDots(err){
+  const maxLen = pinMode === 'coach' ? 3 : 4;
+  const wrap = document.getElementById("pin-dots");
+  wrap.innerHTML = "";
+  for(let i=0;i<maxLen;i++){
+    const d = document.createElement("div");
+    d.className = "pin-dot" + (i < pinBuffer.length ? " filled" : "") + (err ? " err" : "");
+    wrap.appendChild(d);
+  }
+}
+function buildKeypad(){
+  const kp = document.getElementById("keypad");
+  kp.innerHTML = "";
+  const keys = ["1","2","3","4","5","6","7","8","9","del","0","ok"];
+  keys.forEach(k=>{
+    const el = document.createElement("div");
+    if(k === "del"){
+      el.className = "key action";
+      el.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 5H8l-6 7 6 7h13a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><path d="M18 9l-6 6M12 9l6 6"/></svg>`;
+      el.onclick = () => { pinBuffer = pinBuffer.slice(0,-1); renderPinDots(false); document.getElementById("pin-error").textContent=""; };
+    } else if(k === "ok"){
+      el.className = "key action";
+      el.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>`;
+      el.onclick = submitPin;
+    } else {
+      el.className = "key";
+      el.textContent = k;
+      el.onclick = () => {
+        const maxLen = pinMode === 'coach' ? 3 : 4;
+        if(pinBuffer.length < maxLen){ pinBuffer += k; renderPinDots(false); document.getElementById("pin-error").textContent=""; }
+      };
+    }
+    kp.appendChild(el);
+  });
+}
+function submitPin(){
+  const expectedLen = pinMode === 'coach' ? 3 : 4;
+  if(pinBuffer.length < expectedLen){
+    document.getElementById("pin-error").textContent = "Code incomplet";
+    renderPinDots(true);
+    return;
+  }
+  if(pinMode === 'coach'){
+    if(pinBuffer === COACH_CODE){
+      closePin();
+      openCoach();
+    } else {
+      document.getElementById("pin-error").textContent = "Code incorrect";
+      renderPinDots(true);
+      pinBuffer = "";
+      setTimeout(()=>renderPinDots(false), 400);
+    }
+  } else {
+    if(pinBuffer === currentPlayer.code){
+      closePin();
+      openPlayer(currentPlayer);
+    } else {
+      document.getElementById("pin-error").textContent = "Code incorrect";
+      renderPinDots(true);
+      pinBuffer = "";
+      setTimeout(()=>renderPinDots(false), 400);
+    }
+  }
+}
+document.getElementById("pin-cancel").onclick = closePin;
+document.getElementById("btn-coach-home").onclick = () => openPin('coach');
+
+/* ======================= PLAYER SCREEN ======================= */
+function show(id){
+  ["screen-home","screen-player","screen-coach"].forEach(s=>{
+    document.getElementById(s).classList.toggle("hidden", s !== id);
+  });
+}
+document.getElementById("btn-back-player").onclick = () => show("screen-home");
+document.getElementById("btn-back-coach").onclick = () => show("screen-home");
+
+const ballSVG = (dim=26) => `<svg class="mini-ball" width="${dim}" height="${dim}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#F6F3E9" stroke="#12301F" stroke-width="6"/><path d="M50 10 L64 22 L59 40 L41 40 L36 22 Z" fill="#12301F"/><path d="M50 90 L36 78 L41 60 L59 60 L64 78 Z" fill="#12301F"/><path d="M10 50 L22 36 L40 41 L40 59 L22 64 Z" fill="#12301F"/><path d="M90 50 L78 64 L60 59 L60 41 L78 36 Z" fill="#12301F"/></svg>`;
+
+async function openPlayer(player){
+  currentPlayer = player;
+  document.getElementById("player-name").textContent = player.name;
+  document.getElementById("player-week-range").textContent = "Semaine du " + fmtRange(WEEK.monday, WEEK.sunday);
+  document.getElementById("player-content").innerHTML = `<div class="loading-box">Chargement…</div>`;
+  show("screen-player");
+  await renderPlayerScreen();
+}
+
+async function renderPlayerScreen(){
+  const content = document.getElementById("player-content");
+  const sessions = await getSessionsForPlayer(WEEK.key, currentPlayer.name);
+
+  if(sessions === null){
+    content.innerHTML = `<div class="error-box">Impossible de contacter le Google Sheet. Vérifie ta connexion et réessaie.</div>
+      <button class="save-btn" id="btn-retry">Réessayer</button>`;
+    document.getElementById("btn-retry").onclick = renderPlayerScreen;
+    return;
+  }
+
+  const b1on = sessions.length >= 1, b2on = sessions.length >= 2;
+  let html = `
+    <div class="status-row">
+      <div style="display:flex;gap:4px;">
+        <div class="${b1on?'':'off'}" style="display:inline-block;">${ballSVG(24)}</div>
+        <div class="${b2on?'':'off'}" style="display:inline-block;">${ballSVG(24)}</div>
+      </div>
+      <div class="status-text">${sessions.length === 0
+        ? 'Aucune session cette semaine — <b>fiche en rouge</b>'
+        : sessions.length === 1
+          ? '<b>1 session</b> enregistrée — fiche au vert ✓'
+          : '<b>2 sessions</b> enregistrées — maximum atteint'}</div>
+    </div>
+  `;
+
+  sessions.forEach((s, i)=>{
+    html += `
+      <div class="card">
+        <div class="card-head">
+          <span class="tag">Session ${i+1}</span>
+          <span class="card-date">${new Date(s.Date).toLocaleString('fr-FR', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span>
+        </div>
+        <div class="score-grid">
+          <div class="score-item"><span>Pied droit</span><span>${s.PiedDroit}</span></div>
+          <div class="score-item"><span>Pied gauche</span><span>${s.PiedGauche}</span></div>
+          <div class="score-item"><span>Pieds alternés</span><span>${s.PiedsAlternes}</span></div>
+          <div class="score-item"><span>Tête</span><span>${s.Tete}</span></div>
+        </div>
+      </div>
+    `;
+  });
+
+  if(sessions.length >= 2){
+    html += `<div class="locked-box">Tu as déjà rempli 2 sessions cette semaine.<br>Reviens la semaine prochaine !</div>`;
+    content.innerHTML = html;
+  } else {
+    html += `
+      <div class="card">
+        <div class="card-head"><span class="tag">Nouvelle session</span></div>
+        ${DISCIPLINES.map(d=>`
+          <div class="form-row">
+            <label>${d.label} (nombre de jongles, meilleur essai)</label>
+            <input type="number" min="0" inputmode="numeric" id="input-${d.key}" placeholder="0">
+          </div>
+        `).join("")}
+        <button class="save-btn" id="btn-save-session">Enregistrer la session</button>
+      </div>
+    `;
+    content.innerHTML = html;
+
+    document.getElementById("btn-save-session").onclick = async () => {
+      const sessionObj = { date: new Date().toISOString() };
+      let valid = true;
+      DISCIPLINES.forEach(d=>{
+        const val = document.getElementById(`input-${d.key}`).value;
+        const num = val === "" ? 0 : parseInt(val, 10);
+        if(isNaN(num) || num < 0) valid = false;
+        sessionObj[d.key] = isNaN(num) ? 0 : num;
+      });
+      if(!valid){ alert("Merci d'entrer des nombres valides."); return; }
+
+      const btn = document.getElementById("btn-save-session");
+      btn.disabled = true; btn.textContent = "Enregistrement…";
+      try{
+        await saveSession(WEEK.key, currentPlayer.name, sessions.length + 1, sessionObj);
+        await renderPlayerScreen();
+      }catch(e){
+        btn.disabled = false; btn.textContent = "Enregistrer la session";
+        alert("Erreur d'enregistrement, réessaie.");
+      }
+    };
+  }
+}
+
+/* ======================= COACH DASHBOARD ======================= */
+async function openCoach(){
+  document.getElementById("coach-week-range").textContent = "Semaine du " + fmtRange(WEEK.monday, WEEK.sunday);
+  document.getElementById("coach-content").innerHTML = `<div class="loading-box">Chargement…</div>`;
+  show("screen-coach");
+  await renderCoachScreen();
+}
+async function renderCoachScreen(){
+  const content = document.getElementById("coach-content");
+  const weekRows = await getSessionsForWeek(WEEK.key);
+
+  if(weekRows === null){
+    content.innerHTML = `<div class="error-box">Impossible de contacter le Google Sheet. Vérifie ta connexion et réessaie.</div>
+      <button class="save-btn" id="btn-retry-coach">Réessayer</button>`;
+    document.getElementById("btn-retry-coach").onclick = renderCoachScreen;
+    return;
+  }
+
+  const byPlayer = {};
+  weekRows.forEach(r=>{
+    if(!byPlayer[r.Joueur]) byPlayer[r.Joueur] = [];
+    byPlayer[r.Joueur].push(r);
+  });
+
+  let doneCount = 0;
+  let tiles = "";
+  PLAYERS.forEach(p=>{
+    const sessions = (byPlayer[p.name] || []).sort((a,b)=> Number(a.Session) - Number(b.Session));
+    const done = sessions.length >= 1;
+    if(done) doneCount++;
+    tiles += `
+      <div class="coach-tile ${done ? 'green' : 'red'}" data-player="${p.name}">
+        <svg class="cicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          ${done ? '<path d="M20 6L9 17l-5-5"/>' : '<path d="M18 6L6 18M6 6l12 12"/>'}
+        </svg>
+        <div class="cname">${p.name}</div>
+        <div class="csub">${sessions.length} session${sessions.length>1?'s':''} cette semaine</div>
+      </div>
+    `;
+  });
+
+  content.innerHTML = `
+    <div class="stat-bar">
+      <div style="font-size:12px;color:var(--muted);font-weight:600;">Joueurs à jour cette semaine</div>
+      <div class="num">${doneCount} / ${PLAYERS.length}</div>
+    </div>
+    <div class="coach-grid">${tiles}</div>
+    <button class="export-btn" id="btn-export">Exporter toute la saison (CSV)</button>
+    ${SPREADSHEET_VIEW_URL ? `<a class="sheet-link" href="${SPREADSHEET_VIEW_URL}" target="_blank" rel="noopener">Ouvrir le Google Sheet complet ↗</a>` : ""}
+  `;
+
+  content.querySelectorAll(".coach-tile").forEach(tile=>{
+    tile.onclick = () => {
+      const pname = tile.getAttribute("data-player");
+      openDetail(pname, byPlayer[pname] || []);
+    };
+  });
+
+  document.getElementById("btn-export").onclick = exportCsv;
+}
+
+function openDetail(playerName, sessions){
+  document.getElementById("detail-title").textContent = playerName;
+  document.getElementById("detail-week").textContent = "Semaine du " + fmtRange(WEEK.monday, WEEK.sunday);
+  const content = document.getElementById("detail-content");
+  if(sessions.length === 0){
+    content.innerHTML = `<div class="empty-note">Aucune session enregistrée cette semaine.</div>`;
+  } else {
+    content.innerHTML = sessions.map((s,i)=>`
+      <div class="card">
+        <div class="card-head">
+          <span class="tag">Session ${i+1}</span>
+          <span class="card-date">${new Date(s.Date).toLocaleString('fr-FR', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span>
+        </div>
+        <div class="score-grid">
+          <div class="score-item"><span>Pied droit</span><span>${s.PiedDroit}</span></div>
+          <div class="score-item"><span>Pied gauche</span><span>${s.PiedGauche}</span></div>
+          <div class="score-item"><span>Pieds alternés</span><span>${s.PiedsAlternes}</span></div>
+          <div class="score-item"><span>Tête</span><span>${s.Tete}</span></div>
+        </div>
+      </div>
+    `).join("");
+  }
+  document.getElementById("detail-overlay").classList.remove("hidden");
+}
+document.getElementById("detail-close").onclick = () => document.getElementById("detail-overlay").classList.add("hidden");
+
+/* Optionnel : lien direct vers le Google Sheet (colle l'URL du Sheet ici si tu veux le bouton) */
+const SPREADSHEET_VIEW_URL = "";
+
+/* ======================= EXPORT CSV ======================= */
+async function exportCsv(){
+  const btn = document.getElementById("btn-export");
+  btn.disabled = true; btn.textContent = "Préparation…";
+  try{
+    const rows = await apiGet({ action: "all" });
+    const header = ["Joueur","Semaine","Session","Date","Pied droit","Pied gauche","Pieds alternés","Tête"];
+    const csvRows = [header];
+    rows.forEach(r=>{
+      csvRows.push([r.Joueur, r.Semaine, r.Session, r.Date, r.PiedDroit, r.PiedGauche, r.PiedsAlternes, r.Tete]);
+    });
+    const csv = csvRows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `suivi-jonglerie-u13-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){
+    alert("Erreur lors de l'export. Réessaie.");
+  }finally{
+    btn.disabled = false; btn.textContent = "Exporter toute la saison (CSV)";
+  }
+}
+</script>
+</body>
+</html>
