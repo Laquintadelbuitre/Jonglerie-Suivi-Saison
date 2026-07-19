@@ -533,6 +533,17 @@ document.getElementById("btn-back-coach").onclick = () => show("screen-home");
 
 const ballSVG = (dim=26) => `<svg class="mini-ball" width="${dim}" height="${dim}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#F3F5F7" stroke="#0B2A47" stroke-width="6"/><path d="M50 10 L64 22 L59 40 L41 40 L36 22 Z" fill="#0B2A47"/><path d="M50 90 L36 78 L41 60 L59 60 L64 78 Z" fill="#0B2A47"/><path d="M10 50 L22 36 L40 41 L40 59 L22 64 Z" fill="#0B2A47"/><path d="M90 50 L78 64 L60 59 L60 41 L78 36 Z" fill="#0B2A47"/></svg>`;
 
+// Affiche la date d'une session de façon fiable : on privilégie la date lisible
+// envoyée au moment de l'enregistrement, avec un fallback qui force le fuseau Europe/Paris.
+function displayDate(s){
+  if(s.DateLisible) return s.DateLisible;
+  try{
+    return new Date(s.Date).toLocaleString('fr-FR', { timeZone:'Europe/Paris', weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  }catch(e){
+    return s.Date || "—";
+  }
+}
+
 async function openPlayer(player){
   currentPlayer = player;
   document.getElementById("player-name").textContent = player.name;
@@ -573,7 +584,7 @@ async function renderPlayerScreen(){
       <div class="card">
         <div class="card-head">
           <span class="tag">Session ${i+1}</span>
-          <span class="card-date">${new Date(s.Date).toLocaleString('fr-FR', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span>
+          <span class="card-date">${displayDate(s)}</span>
         </div>
         <div class="score-grid">
           <div class="score-item"><span>Pied droit</span><span>${s.PiedDroit}</span></div>
@@ -604,7 +615,11 @@ async function renderPlayerScreen(){
     content.innerHTML = html;
 
     document.getElementById("btn-save-session").onclick = async () => {
-      const sessionObj = { date: new Date().toISOString() };
+      const now = new Date();
+      const sessionObj = {
+        date: now.toISOString(),
+        dateLabel: now.toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' })
+      };
       let valid = true;
       DISCIPLINES.forEach(d=>{
         const val = document.getElementById(`input-${d.key}`).value;
@@ -699,7 +714,7 @@ function openDetail(playerName, sessions){
       <div class="card">
         <div class="card-head">
           <span class="tag">Session ${i+1}</span>
-          <span class="card-date">${new Date(s.Date).toLocaleString('fr-FR', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span>
+          <span class="card-date">${displayDate(s)}</span>
         </div>
         <div class="score-grid">
           <div class="score-item"><span>Pied droit</span><span>${s.PiedDroit}</span></div>
@@ -723,10 +738,10 @@ async function exportCsv(){
   btn.disabled = true; btn.textContent = "Préparation…";
   try{
     const rows = await apiGet({ action: "all" });
-    const header = ["Joueur","Semaine","Session","Date","Pied droit","Pied gauche","Pieds alternés","Tête"];
+    const header = ["Joueur","Semaine","Session","Date (lisible)","Date (technique)","Pied droit","Pied gauche","Pieds alternés","Tête"];
     const csvRows = [header];
     rows.forEach(r=>{
-      csvRows.push([r.Joueur, r.Semaine, r.Session, r.Date, r.PiedDroit, r.PiedGauche, r.PiedsAlternes, r.Tete]);
+      csvRows.push([r.Joueur, r.Semaine, r.Session, r.DateLisible || "", r.Date, r.PiedDroit, r.PiedGauche, r.PiedsAlternes, r.Tete]);
     });
     const csv = csvRows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
