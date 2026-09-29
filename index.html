@@ -200,6 +200,13 @@ h1,h2,h3,.display{
 .coach-tile.red{background:linear-gradient(135deg,var(--alert),var(--alert-dark));}
 .coach-tile .cname{font-family:'Oswald',sans-serif; font-size:14px; font-weight:600;}
 .coach-tile .csub{font-size:11px; opacity:0.9; margin-top:3px;}
+.nav-semaine-zone{display:flex; align-items:center; justify-content:center; gap:16px; margin-top:10px;}
+.nav-semaine{
+  background:rgba(255,255,255,0.16); border:none; color:#fff; width:32px; height:32px; border-radius:50%;
+  font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.nav-semaine:disabled{opacity:0.25; cursor:not-allowed;}
+.nav-semaine-label{font-size:12px; color:#B9C9BE; font-family:'Inter',sans-serif; min-width:120px; text-align:center;}
 .coach-tile .cicon{position:absolute; right:8px; top:8px; width:16px; height:16px; opacity:0.85;}
 
 .export-btn{
@@ -290,6 +297,7 @@ footer.note{padding:0 20px 26px; font-size:11px; color:var(--muted); text-align:
       <button class="back" id="btn-back-coach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Accueil</button>
       <h1 class="hero-title">Tableau de bord</h1>
       <div class="hero-sub" id="coach-week-range">—</div>
+      <div class="nav-semaine-zone" id="coach-week-nav"></div>
     </div>
     <div class="section" style="padding-top:20px;" id="coach-content">
       <div class="loading-box">Chargement…</div>
